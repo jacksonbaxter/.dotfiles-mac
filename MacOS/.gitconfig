@@ -1,0 +1,6 @@
+# This is Git's per-user configuration file.
+[user]
+	email = tech.xs8kl@simplelogin.com
+# Please adapt and uncomment the following lines:
+#	name = Jackson Baxter
+#	email = tech.xs8kl@simplelogin.com
