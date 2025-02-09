@@ -72,8 +72,6 @@ cask "android-platform-tools"
 cask "arc"
 # Online gaming platform
 cask "battle-net"
-# Write, edit, and chat about your code with AI
-cask "cursor"
 # Diablo build for modern operating systems
 cask "devilutionx"
 # Utilities designed to make common development tasks easier
