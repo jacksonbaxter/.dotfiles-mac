@@ -107,5 +107,7 @@ cask "steam"
 cask "stolendata-mpv"
 # Customizable email client
 cask "thunderbird"
+# Multiplayer code editor
+cask "zed"
 # Video communication and virtual meeting platform
 cask "zoom"
