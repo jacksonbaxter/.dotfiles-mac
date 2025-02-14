@@ -97,8 +97,6 @@ cask "mullvadvpn"
 cask "obsidian"
 # Control your tools with a few keystrokes
 cask "raycast"
-# Move and resize windows using keyboard shortcuts or snap areas
-cask "rectangle"
 # Instant messaging application focusing on security
 cask "signal"
 # Video game digital distribution service
