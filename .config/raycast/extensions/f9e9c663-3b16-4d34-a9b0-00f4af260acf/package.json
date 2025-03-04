@@ -79,7 +79,17 @@
       "title": "Create Task",
       "subtitle": "Todoist",
       "description": "Create a Todoist task.",
-      "mode": "view"
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "shouldCloseMainWindow",
+          "type": "checkbox",
+          "label": "Close window immediately",
+          "description": "When enabled, the Raycast window is closed immediately, allowing you to carry on with other work.",
+          "default": false,
+          "required": false
+        }
+      ]
     },
     {
       "name": "quick-add-task",
@@ -91,7 +101,6 @@
         {
           "name": "shouldCloseMainWindow",
           "type": "checkbox",
-          "title": "Advanced",
           "label": "Close window immediately",
           "description": "When enabled, the Raycast window is closed immediately, allowing you to carry on with other work.",
           "default": false,
@@ -202,7 +211,6 @@
         {
           "name": "showTaskCount",
           "type": "checkbox",
-          "title": "Advanced",
           "label": "Show the task count besides the project",
           "description": "When enabled, you can see the task count besides your project.",
           "default": false,
@@ -241,9 +249,9 @@
   ],
   "tools": [
     {
-      "name": "get-relevant-data",
-      "title": "Get Relevant Data",
-      "description": "Retrieves relevant data from Todoist",
+      "name": "get-other-data",
+      "title": "Get Other Data",
+      "description": "Retrieves other data from Todoist (e.g. filter, labels, reminders, locations, user, etc.)",
       "input": {
         "type": "object",
         "properties": {
@@ -258,6 +266,42 @@
         "required": [
           "resource_types"
         ]
+      },
+      "confirmation": false
+    },
+    {
+      "name": "get-tasks",
+      "title": "Get Tasks",
+      "description": "Retrieves tasks from Todoist",
+      "input": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Filter tasks by project ID"
+          },
+          "section_id": {
+            "type": "string",
+            "description": "Filter tasks by section ID"
+          },
+          "label": {
+            "type": "string",
+            "description": "Filter tasks by label name"
+          },
+          "filter": {
+            "type": "string",
+            "description": "Filter tasks by any supported filter. Supports advanced filtering with various operators and keywords.\n\nBASIC OPERATORS:\n- | (OR): \"today | overdue\"\n- & (AND): \"today & p1\"\n- ! (NOT): \"!subtask\"\n- () (Grouping): \"(today | overdue) & #Work\"\n- , (Separate lists): \"date: yesterday, today\"\n- \\ (Escape special chars): \"#One \\& Two\"\n\nDATE FILTERS:\n- Specific dates:\n  \"date: Jan 3\" - Tasks for January 3rd\n  \"date before: May 5\" - Tasks before May 5th\n  \"date after: May 5\" - Tasks after May 5th\n- Relative dates:\n  \"date before: +4 hours\" - Tasks due within next 4 hours plus overdue\n  \"5 days\" or \"next 5 days\" - Tasks in next 5 days\n- Special date filters:\n  \"no date\" - Tasks without dates\n  \"!no time\" - Tasks with specific times\n  \"recurring\" - Recurring tasks\n\nPRIORITY FILTERS:\n- \"p1\" - Priority 1 (highest)\n- \"p2\" - Priority 2\n- \"p3\" - Priority 3\n- \"no priority\" - No priority set (p4)\n\nORGANIZATION FILTERS:\nLabels:\n- \"@email\" - Tasks with email label\n- \"no labels\" - Tasks without any labels\n- \"@home*\" - Tasks with labels starting with \"home\"\n\nProjects:\n- \"#Work\" - Tasks in Work project\n- \"##Work\" - Tasks in Work project and its sub-projects\n- \"##School & !#Science\" - School project tasks excluding Science\n\nSections:\n- \"/Meetings\" - Tasks in any Meetings section\n- \"#Work & /Meetings\" - Tasks in Work project's Meetings section\n- \"!/*\" - Tasks not in any section\n\nWorkspaces:\n- \"workspace: My projects\" - Tasks in My Projects workspace\n\nTASK PROPERTIES:\n- Search: \"search: Meeting\"\n- Creation: \"created: today\"\n- Subtasks: \"subtask\" or \"!subtask\"\n\nASSIGNMENT FILTERS:\n- \"assigned to: others\" - Tasks assigned to others\n- \"assigned by: me\" - Tasks you assigned\n- \"shared\" - Tasks in shared projects\n\nCOMPLEX EXAMPLES:\n- \"(today | overdue) & #Work\" - Today's or overdue Work tasks\n- \"7 days &\n\n@waiting \" - Next week's waiting tasks\n- \"#Inbox & no date\" - Undated Inbox tasks\n- \"@urgent* & ##Work\" - Work tasks with urgent-like labels\n\nNote: Multiple filters (using the comma operator) are not supported"
+          },
+          "lang": {
+            "type": "string",
+            "description": "IETF language tag defining what language filter is written in,\nif differs from default English"
+          },
+          "ids": {
+            "type": "string",
+            "description": "A list of the task IDs to retrieve, this should be a comma separated list."
+          }
+        },
+        "required": []
       },
       "confirmation": false
     },
@@ -596,6 +640,12 @@
         ]
       },
       "confirmation": true
+    },
+    {
+      "name": "get-projects",
+      "title": "Get Projects",
+      "description": "Retrieves all projects from Todoist using REST API",
+      "confirmation": false
     },
     {
       "name": "create-project",
@@ -1007,6 +1057,26 @@
       "confirmation": true
     },
     {
+      "name": "get-comments",
+      "title": "Get Comments",
+      "description": "Retrieves comments for a task or project from Todoist",
+      "input": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "ID of the task used to filter comments\nNote: Either task_id or project_id must be provided"
+          },
+          "project_id": {
+            "type": "string",
+            "description": "ID of the project used to filter comments\nNote: Either task_id or project_id must be provided"
+          }
+        },
+        "required": []
+      },
+      "confirmation": false
+    },
+    {
       "name": "add-comment",
       "title": "Add Comment",
       "description": "Adds a comment to a Todoist task",
@@ -1079,37 +1149,28 @@
     }
   ],
   "ai": {
-    "instructions": "- If you need to get data (projects, sections, labels, tasks, etc.), use the get-data tool.\\n- When asked about the tasks scheduled for a specific day, only return the tasks scheduled for that day.\\n- Users can use shortcuts to create a task, they can include in the text: a project name starting with the # character (without spaces), a label starting with the @ character, an assignee starting with the + character, a priority (e.g., p1), or a description starting from // until the end of the text.\\n- Make sure the title doesn't contain the date.\\n- Before creating something, check if it already exists first.",
+    "instructions": "\\n- When getting tasks, use filters only if you can't find the tasks with the project_id, section_id, or label first.\\n- When asked about the tasks scheduled for a specific day, only return the tasks scheduled for that day.\\n- Users can use shortcuts to create a task, they can include in the text: a project name starting with the # character (without spaces), a label starting with the @ character, an assignee starting with the + character, a priority (e.g., p1), or a description starting from // until the end of the text.\\n- Make sure the title doesn't contain the date.\\n- Before creating something, check if it already exists first.",
     "evals": [
       {
         "input": "@todoist Buy groceries today at 10 in home project",
         "mocks": {
-          "get-relevant-data": {
-            "projects": [
-              {
-                "id": "fitness",
-                "color": "red",
-                "name": "Fitness"
-              },
-              {
-                "id": "home",
-                "name": "Home",
-                "color": "green"
-              }
-            ]
-          },
+          "get-projects": [
+            {
+              "id": "fitness",
+              "color": "red",
+              "name": "Fitness"
+            },
+            {
+              "id": "home",
+              "name": "Home",
+              "color": "green"
+            }
+          ],
           "create-task": "Successfully called \"create-task\""
         },
         "expected": [
           {
-            "callsTool": {
-              "arguments": {
-                "resource_types": {
-                  "includes": "projects"
-                }
-              },
-              "name": "get-relevant-data"
-            }
+            "callsTool": "get-projects"
           },
           {
             "callsTool": {
@@ -1125,42 +1186,33 @@
       {
         "input": "@todoist what's scheduled for today",
         "mocks": {
-          "get-relevant-data": {
-            "items": [
-              {
-                "id": "1",
-                "content": "Buy groceries",
-                "due": {
-                  "date": "2025-01-22"
-                }
-              },
-              {
-                "id": "2",
-                "content": "Finish the report",
-                "due": {
-                  "date": "2025-01-23"
-                }
-              },
-              {
-                "id": "3",
-                "content": "Schedule a meeting with the team",
-                "due": {
-                  "date": "2025-01-24"
-                }
+          "get-tasks": [
+            {
+              "id": "1",
+              "content": "Buy groceries",
+              "due": {
+                "date": "2025-01-22"
               }
-            ]
-          }
+            },
+            {
+              "id": "2",
+              "content": "Finish the report",
+              "due": {
+                "date": "2025-01-23"
+              }
+            },
+            {
+              "id": "3",
+              "content": "Schedule a meeting with the team",
+              "due": {
+                "date": "2025-01-24"
+              }
+            }
+          ]
         },
         "expected": [
           {
-            "callsTool": {
-              "arguments": {
-                "resource_types": [
-                  "items"
-                ]
-              },
-              "name": "get-relevant-data"
-            }
+            "callsTool": "get-tasks"
           },
           {
             "meetsCriteria": "The answer includes the tasks scheduled for today."
@@ -1171,7 +1223,7 @@
         "input": "@todoist Create a filter for my high-priority tasks in work",
         "mocks": {
           "create-filter": "Successfully called \"create-filter\"",
-          "get-relevant-data": {
+          "get-other-data": {
             "filters": []
           }
         },
@@ -1230,21 +1282,19 @@
       {
         "input": "@todoist Add urgent label to my website bugs tasks",
         "mocks": {
-          "get-relevant-data": {
-            "items": [
-              {
-                "id": "1",
-                "content": "Write a blog post"
-              },
-              {
-                "id": "2",
-                "content": "Strange Safari bug on website"
-              },
-              {
-                "id": "3",
-                "content": "Eat vitamins"
-              }
-            ],
+          "get-projects": [
+            {
+              "id": "fitness",
+              "color": "red",
+              "name": "Fitness"
+            },
+            {
+              "id": "home",
+              "name": "Home",
+              "color": "green"
+            }
+          ],
+          "get-other-data": {
             "labels": [
               {
                 "name": "urgent",
@@ -1253,6 +1303,12 @@
               }
             ]
           },
+          "get-tasks": [
+            {
+              "id": "2",
+              "content": "Strange Safari bug on website"
+            }
+          ],
           "update-task": "Successfully called \"update-task\""
         },
         "expected": [
@@ -1260,17 +1316,10 @@
             "callsTool": {
               "arguments": {
                 "resource_types": {
-                  "and": [
-                    {
-                      "includes": "items"
-                    },
-                    {
-                      "includes": "labels"
-                    }
-                  ]
+                  "includes": "labels"
                 }
               },
-              "name": "get-relevant-data"
+              "name": "get-other-data"
             }
           },
           {
