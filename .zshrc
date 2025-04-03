@@ -191,3 +191,4 @@ export PATH="$PATH:/Users/jacksonbaxter/.lmstudio/bin"
 
 # --- Cargo Binary Path ---
 export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
